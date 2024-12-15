@@ -13,8 +13,12 @@ class TestModels(unittest.TestCase):
         self.assertEqual(article.title, "Test Title")
 
     def test_magazine_creation(self):
-        magazine = Magazine(1, "Tech Weekly")
+    # This assumes the Magazine constructor needs 3 arguments
+        magazine = Magazine(1, "Tech Weekly", "Technology")  # Ensure 3 arguments are passed
+        self.assertEqual(magazine.id, 1)
         self.assertEqual(magazine.name, "Tech Weekly")
+        self.assertEqual(magazine.category, "Technology")
+
 
 if __name__ == "__main__":
     unittest.main()

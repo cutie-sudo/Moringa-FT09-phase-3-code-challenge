@@ -1,3 +1,4 @@
+import sqlite3
 from database.setup import create_tables
 from database.connection import get_db_connection
 from models.article import Article
@@ -15,43 +16,49 @@ def main():
     article_title = input("Enter article title: ")
     article_content = input("Enter article content: ")
 
-    # Connect to the database
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    try:
+        # Connect to the database
+        conn = get_db_connection()
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
 
+        # Create an author
+        cursor.execute('INSERT INTO authors (name) VALUES (?)', (author_name,))
+        author_id = cursor.lastrowid  # Get the ID of the newly created author
+        print(f"Author created with ID: {author_id}")
 
-    '''
-        The following is just for testing purposes, 
-        you can modify it to meet the requirements of your implmentation.
-    '''
+        # Create a magazine
+        cursor.execute('INSERT INTO magazines (name, category) VALUES (?, ?)', (magazine_name, magazine_category))
+        magazine_id = cursor.lastrowid  # Get the ID of the newly created magazine
+        print(f"Magazine created with ID: {magazine_id}")
 
-    # Create an author
-    cursor.execute('INSERT INTO authors (name) VALUES (?)', (author_name,))
-    author_id = cursor.lastrowid # Use this to fetch the id of the newly created author
+        # Create an article
+        cursor.execute('INSERT INTO articles (title, content, author_id, magazine_id) VALUES (?, ?, ?, ?)',
+                       (article_title, article_content, author_id, magazine_id))
+        print("Article created successfully.")
 
-    # Create a magazine
-    cursor.execute('INSERT INTO magazines (name, category) VALUES (?,?)', (magazine_name, magazine_category))
-    magazine_id = cursor.lastrowid # Use this to fetch the id of the newly created magazine
+        # Commit changes to the database
+        conn.commit()
 
-    # Create an article
-    cursor.execute('INSERT INTO articles (title, content, author_id, magazine_id) VALUES (?, ?, ?, ?)',
-                   (article_title, article_content, author_id, magazine_id))
+        # Query the database for inserted records
+        cursor.execute('SELECT * FROM magazines')
+        magazines = cursor.fetchall()
 
-    conn.commit()
+        cursor.execute('SELECT * FROM authors')
+        authors = cursor.fetchall()
 
-    # Query the database for inserted records. 
-    # The following fetch functionality should probably be in their respective models
+        cursor.execute('SELECT * FROM articles')
+        articles = cursor.fetchall()
 
-    cursor.execute('SELECT * FROM magazines')
-    magazines = cursor.fetchall()
+    except sqlite3.Error as e:
+        # Handle SQLite errors specifically
+        print(f"An error occurred while querying the database: {e}")
+        conn.rollback()  # Rollback the transaction if something went wrong
 
-    cursor.execute('SELECT * FROM authors')
-    authors = cursor.fetchall()
-
-    cursor.execute('SELECT * FROM articles')
-    articles = cursor.fetchall()
-
-    conn.close()
+    finally:
+        # Ensure the connection and cursor are closed properly
+        cursor.close()
+        conn.close()
 
     # Display results
     print("\nMagazines:")

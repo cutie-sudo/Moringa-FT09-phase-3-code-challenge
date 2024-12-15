@@ -1,8 +1,11 @@
 from .connection import get_db_connection
 
 def create_tables():
+ try:
     conn = get_db_connection()
     cursor = conn.cursor()
+
+    cursor.execute('PRAGMA foreign_keys = ON')
     
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS authors (
@@ -30,4 +33,13 @@ def create_tables():
     ''')
 
     conn.commit()
+    print('Tables created successfully.')
+
+ except Exception as e:
+        print(f'An error occurred while creating tables: {e}')
+
+ finally:
+
     conn.close()
+
+  
